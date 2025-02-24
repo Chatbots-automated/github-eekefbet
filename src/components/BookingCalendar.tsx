@@ -15,24 +15,33 @@ export default function BookingCalendar() {
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const loadTimeSlots = async () => {
-      try {
-        setLoading(true);
-        const response = await fetchAvailableTimeSlots(format(selectedDate, 'yyyy-MM-dd'));
-        // Ensure we have an array of time slots
-        const slots = Array.isArray(response) ? response : [];
-        setTimeSlots(slots);
-      } catch (err) {
-        setError('Failed to load available time slots');
-        setTimeSlots([]); // Reset to empty array on error
-      } finally {
-        setLoading(false);
-      }
-    };
+  const loadTimeSlots = async (cabinId: string, date: Date) => {
+    try {
+      setLoading(true);
+      setError('');
+      const slots = await fetchAvailableTimeSlots(cabinId, format(date, 'yyyy-MM-dd'));
+      setTimeSlots(slots);
+    } catch (err) {
+      setError('Failed to load available time slots');
+      setTimeSlots([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadTimeSlots();
-  }, [selectedDate]);
+  // Load time slots when cabin or date changes
+  useEffect(() => {
+    if (selectedCabin) {
+      loadTimeSlots(selectedCabin, selectedDate);
+    } else {
+      setTimeSlots([]);
+    }
+  }, [selectedCabin, selectedDate]);
+
+  const handleCabinSelect = async (cabinId: string) => {
+    setSelectedCabin(cabinId);
+    setSelectedTime(''); // Reset selected time when changing cabins
+  };
 
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +75,7 @@ export default function BookingCalendar() {
       // Reset form
       setSelectedCabin('');
       setSelectedTime('');
+      setTimeSlots([]);
       setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create booking');
@@ -93,7 +103,7 @@ export default function BookingCalendar() {
             {cabins.map((cabin) => (
               <button
                 key={cabin.id}
-                onClick={() => setSelectedCabin(cabin.id)}
+                onClick={() => handleCabinSelect(cabin.id)}
                 className={`p-4 rounded-xl border-2 text-left transition-all ${
                   selectedCabin === cabin.id
                     ? 'border-elida-gold bg-elida-gold/5'
@@ -149,7 +159,9 @@ export default function BookingCalendar() {
             <Clock className="h-5 w-5 text-elida-gold" />
             Select Time
           </h3>
-          {loading ? (
+          {!selectedCabin ? (
+            <p className="text-gray-500 text-center py-4">Please select a cabin first</p>
+          ) : loading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 text-elida-gold animate-spin" />
             </div>

@@ -1,26 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Sun, Wind, Droplets, Loader2 } from 'lucide-react';
+import { Sun, Wind, Droplets } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { checkCabinAvailability } from '../services/bookingService';
 
 export default function Services() {
-  const [loading, setLoading] = useState<string | null>(null);
   const location = useLocation();
   const isBookingPage = location.pathname === '/booking';
-
-  const handleCabinClick = async (cabinId: string) => {
-    if (isBookingPage) return;
-
-    setLoading(cabinId);
-    try {
-      await checkCabinAvailability(cabinId);
-    } catch (error) {
-      console.error('Error checking availability:', error);
-    } finally {
-      setLoading(null);
-    }
-  };
 
   const services = [
     {
@@ -119,25 +104,14 @@ export default function Services() {
                     <span className="text-2xl font-playfair text-elida-gold">
                       {service.price}
                     </span>
-                    <Link
-                      to="/booking"
-                      onClick={(e) => {
-                        if (!isBookingPage) {
-                          e.preventDefault();
-                          handleCabinClick(service.id);
-                        }
-                      }}
-                      className="relative px-6 py-2 bg-elida-gold text-white rounded-full text-sm font-medium hover:bg-elida-accent transition-colors duration-300"
-                    >
-                      {loading === service.id ? (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Tikrinama...
-                        </div>
-                      ) : (
-                        'Rezervuoti'
-                      )}
-                    </Link>
+                    {service.id !== 'cosmetics' && (
+                      <Link
+                        to="/booking"
+                        className="px-6 py-2 bg-elida-gold text-white rounded-full text-sm font-medium hover:bg-elida-accent transition-colors duration-300"
+                      >
+                        Rezervuoti
+                      </Link>
+                    )}
                   </div>
                 </div>
               </motion.div>

@@ -15,6 +15,11 @@ export interface TimeSlot {
   available: boolean;
 }
 
+export interface BookedTimeSlot {
+  start: string;
+  end: string;
+}
+
 export interface Cabin {
   id: string;
   name: string;
